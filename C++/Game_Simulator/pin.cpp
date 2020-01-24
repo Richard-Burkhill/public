@@ -1,0 +1,63 @@
+#include "pin.hpp"
+#include <math.h>
+#include <iostream>
+
+///////////////////////////////////////////////////////////////////////////////
+// Construct a pin from it (x,y) coordinate.
+///////////////////////////////////////////////////////////////////////////////
+pin::pin(double x, double y)
+   : x_coord {x}, y_coord {y}
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Construct a pin from it (x,y) coordinate and it's (x,y) like a square.
+///////////////////////////////////////////////////////////////////////////////
+pin::pin(double x, double y, int row, int column)
+   : x_coord {x}, y_coord {y}, row {row}, column {column}
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Definition of < operator
+///////////////////////////////////////////////////////////////////////////////
+bool pin::operator<(const pin& rhs) const
+{
+    bool return_value = false;
+    if (y_coord < rhs.y_coord){
+        return_value = true;
+    }
+    else if(y_coord == rhs.y_coord)
+    {
+        if (x_coord < rhs.x_coord){
+            return_value = true;
+        }
+    }
+    return return_value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Definition of > operator
+///////////////////////////////////////////////////////////////////////////////
+bool pin::operator>(const pin& rhs) const
+{
+    bool return_value = false;
+    if (y_coord > rhs.y_coord){
+        return_value = true;
+    }
+    else if(y_coord == rhs.y_coord)
+    {
+        if (x_coord > rhs.x_coord){
+            return_value = true;
+        }
+    }
+    return return_value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Definition of == operator
+///////////////////////////////////////////////////////////////////////////////
+bool pin::operator==(const pin& rhs) const
+{
+    return ((x_coord == rhs.x_coord) && (y_coord == rhs.y_coord));
+}
