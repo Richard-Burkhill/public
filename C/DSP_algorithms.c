@@ -42,7 +42,7 @@ typedef struct {
 * 	rec_len		number of elements in each record
 ****************************************************************************/
 
-DSP_FILE *open_write(file_name,type,records,rec_len)
+DSP_FILE *open_write (char *file_name, int type, int records, int rec_len)
 	char *file_name; 	/* file name string */
 	int type;		/* data type 0-7 */
 	unsigned short int records;	/* number of records to be written */
@@ -126,7 +126,7 @@ DSP_FILE *open_write(file_name,type,records,rec_len)
 *	No return value.
 *	Exits if a read error occurs or if the DSP_file structure is invalid.
 ****************************************************************************/
-void read_record(ptr, dsp_info)
+void read_record (char *ptr, DSP_FILE *dsp_info)
 	char *ptr;
 	DSP_FILE *dsp_info;
 {
@@ -155,7 +155,7 @@ void read_record(ptr, dsp_info)
 *
 * float *read_float_record(DSP_FILE *dsp_info)
 ****************************************************************************/
-float *read_float_record(dsp_info)
+float *read_float_record (DSP_FILE *dsp_info)
 	DSP_FILE *dsp_info;
 {
 	void read_record();
@@ -272,7 +272,7 @@ float *read_float_record(dsp_info)
 * Returns pointer to allocated string.
 * Exits if read error, file error, or allocation  error.
 ****************************************************************************/
-char *read_trailer(dsp_info)
+char *read_trailer (DSP_FILE *dsp_info)
 	DSP_FILE *dsp_info;
 {
 	int status,len;
@@ -333,7 +333,7 @@ char *read_trailer(dsp_info)
 * Returns pointer to allocated string.
 * Exits if read error, file error, or allocation error.
 ****************************************************************************/
-char *append_trailer(string, dsp_info)
+char *append_trailer (char *string, DSP_FILE *dsp_info)
 	char *string;		/* string to add */
 	DSP_FILE *dsp_info;	/* input trailer file */
 {
@@ -352,4 +352,189 @@ char *append_trailer(string, dsp_info)
 	strcat(trail,string);
 
 	return(trail);
+}
+
+typedef struct{
+	unsigned int length; /* size of filter */
+	float *history;
+	float *coef;
+} FILTER;
+
+/****************************************************************************
+* fir_filter_array - Filter float array of data
+*
+* Requires FILTER structure for coefficients.
+* Input and output arrays are of equal length and are allocated by the caller.
+*
+* void fir_filter_array(float *in, float *out, int in_len, FILTER *fir)
+*	in		float pointer to input array
+* 	out		float pointer to output array
+*	in_len		length of input and output arrays
+*	FILTER *fir	pointer to FILTER structure
+****************************************************************************/
+void fir_filter_array (float *in, float *out, int in_len, FILTER *fir)
+	float *in,*out;
+	int in_len;
+	FILTER *fir;
+{
+	int i,j,coef_len2,acc_length;
+	float acc;
+	float *in_ptr,*data_ptr,*coef_start,*coef_ptr,*in_end;
+
+/* set up for coefficients */
+	coef_start = fir->coef;
+	coef_len2 = (fir->length+1)/2;
+
+/* set up input data pointers */
+	in_end = in+in_len-1;
+	in_ptr = in+coef_len2-1;
+
+/* initial value of accumulation length for startup */
+	acc_length = coef_len2;
+
+	for(i=0;i<in_len;i++){
+/* set up pointers for accumulation */
+		data_ptr = in_ptr;
+		coef_ptr = coef_start;
+
+/* do accumulation and write result */
+		acc = (*coef_ptr++) * (*data_ptr--);
+		for(j=1;j<acc_length;j++)
+			acc+=(*coef_ptr++)*(*data_ptr--);
+		*out++ = acc;
+
+/* check for end case */
+
+		if(in_ptr == in_end){
+			acc_length--;
+			coef_start++;
+		}
+
+/* if not at end, then check for startup, add to input pointer */
+		else{
+			if(acc_length < fir->length) acc_length++;
+			in_ptr++;
+		}
+	}
+}
+
+/* FILTERS: 3 FIR AND 2 IIR */
+/* 35 point lowpass FIR filter cutoff at 0.2 */
+float fir_lpf35[35] = {
+-6.849167e-003, 1.949014e-003, 1.309874e-002, 1.100677e-002,
+-6.661435e-003,-1.321869e-002, 6.8195043-003, 2.292400e-002,
+ 7.732160e-004,-3.153488e-002,-1.384843e-002, 4.054618e-002,
+ 3.841148e-002,-4.790497e-002,-8.973017e-002, 5.285565e-002,
+ 3.126515e-001, 4.454146e-001, 3.126515e-001, 5.285565e-002,
+-8.973017e-002,-4.790497e-002, 3.841148e-002, 4.054618e-002,
+-1.384843e-002,-3.153488e-002, 7.732160e-004, 2.292400e-002,
+ 6.8195043-003,-1.321869e-002,-6.661435e-003, 1.100677e-002,
+ 1.309874e-002, 1.949014e-003,-6.849167e-003};
+
+FILTER fir_lpf = {
+	35,
+	NULL,
+	fir_lpf35
+};
+
+/* 35 point highpass FIR filter cutoff at 0.3 same as fir_lpf35
+ * except that every other coefficient has a different sign */
+
+float fir_hpf35[35] = {
+ 6.849167e-003, 1.949014e-003,-1.309874e-002, 1.100677e-002,
+ 6.661435e-003,-1.321869e-002,-6.8195043-003, 2.292400e-002,
+-7.732160e-004,-3.153488e-002, 1.384843e-002, 4.054618e-002,
+-3.841148e-002,-4.790497e-002, 8.973017e-002, 5.285565e-002,
+-3.126515e-001, 4.454146e-001,-3.126515e-001, 5.285565e-002,
+ 8.973017e-002,-4.790497e-002,-3.841148e-002, 4.054618e-002,
+ 1.384843e-002,-3.153488e-002,-7.732160e-004, 2.292400e-002,
+-6.8195043-003,-1.321869e-002, 6.661435e-003, 1.100677e-002,
+-1.309874e-002, 1.949014e-003, 6.849167e-003};
+
+FILTER fir_hpf = {
+	35,
+	NULL,
+	fir_hpf35
+};
+
+/* 52 point bandpass matched FIR filter for pulse demo */
+float fir_pulse52[52] = {
+-1.2579e-002, 2.6513e-002,-2.8456e-016,-5.8760e-002,
+ 7.7212e-002,-1.4313e-015,-1.1906e-001, 1.4253e-001,
+-3.7952e-015,-1.9465e-001, 2.2328e-001,-7.7489e-015,
+-2.8546e-001, 3.1886e-001,-7.8037e-015,-3.8970e-001,
+ 4.2685e-001,-6.3138e-015,-5.0365e-001, 5.4285e-001,
+-1.2521e-014,-6.2157e-001, 6.6052e-001,-9.0928e-015,
+-7.3609e-001, 7.7207e-001,-3.6507e-015,-8.3886e-001,
+ 8.6905e-001,-1.1165e-014,-9.2156e-001, 9.4336e-001,
+-3.8072e-015,-9.7694e-001, 9.8838e-001,-1.1836e-014,
+-9.9994e-001, 9.9994e-001,-3.3578e-015,-9.5304e-001,
+ 8.9670e-001,-9.3099e-015,-7.3609e-001, 6.4111e-001,
+-5.9892e-015,-4.4578e-001, 3.5365e-001,-2.8959e-015,
+-1.9465e-001, 1.3058e-001,-1.7477e-016,-3.4013e-002};
+
+FILTER fir_pulse = {
+	35,
+	NULL,
+	fir_pulse52
+};
+
+/****************************************************************************
+* FIRFILT.C - PROGRAM TO FIR FILTER THE RECORDS IN A DSP DATA FILE AND
+*	GENERATE A DSP DATA FILE CONTAINING THE NEW FILTERED DATA.
+*
+* INPUTS: FILE NAMES, FILTER TYPE (LPF, HPF OR PULSE)
+*
+* OUTPUTS: DSP DATA FILE WITH FILTERED DATA
+****************************************************************************/
+main()
+{
+	DSP_FILE *dsp_in,*dsp_out; /* input and output files */
+	FILTER *fir_ptr;
+
+	int i,length,type;
+	float *signal_in,*signal_out;
+
+	char *trail,*trail_add;
+
+/* open input file */
+	dsp_in = open_read(get_string("input file name"));
+	if(!dsp_in) exit(1); /* bad filename */
+
+	length = dsp_in->rec_len;
+
+	trail = read_trailer(dsp_in);
+	if(trail && *trail) printf("\nFile trailer:\n%s\n",trail);
+
+	signal_out = (float*)calloc(length,sizeof(float));
+	if(!signal_out){
+		printf("\nUnable to allocate output array\n");
+		exit(1);
+	}
+
+/* get type of filter to use */
+	type = get_int("filter type (0 = LPF, 1 = HPF, 2 = PULSE)",0,2);
+
+	if(type == 0) fir_ptr = &fir_lpf;	/* lowpass filter, 0.2 cutoff */
+	if(type == 1) fir_ptr = &fir_hpf;	/* highpass filter, 0.3 cutoff */
+	if(type == 2) fir_ptr = &fir_pulse;	/* matched pulse filter */
+
+/* open output records of floats */
+	dsp_out = open_write(get_string("output file name"),FLOAT,dsp_in->records,length);
+
+	if(!dsp_out) exit(1);
+
+/* read, filter and write out data */
+	 for(i=0;i<dsp_in->records;i++){
+		signal_in = read_float_record(dsp_in);
+		fir_filter_array(signal_in,signal_out,length,fir_ptr);
+		write_record((char*)signal_out,dsp_out);
+		free((char*)signal_in);		/* free old space */
+	}
+
+/* make descriptive trailer and write to file */
+	if(type == 0) trail_add = "\nLowpass filtered using FIRFILT";
+	if(type == 1) trail_add = "\nHighpass filtered using FIRFILT";
+	if(type == 2) trail_add = "\nMatched pulse filtered using FIRFILT";
+	write_trailer(append_trailer(trail_add,dsp_in),dsp_out);
 }
