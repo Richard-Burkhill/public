@@ -14,9 +14,9 @@ LIB_OBJS := bespoke_connection.o tcp_client.o tcp_connection.o tcp_server.o
 TEST_SERVER_OBJS := $(LIB_OBJS) tcp_server_main.o
 TEST_CLIENT_OBJS := tcp_client_main.o tcp_client.o
 
-LIB_SRC := src/bespoke_connection.cpp src/tcp_client.cpp src/tcp_connection.cpp src/tcp_server.cpp
-TEST_SERVER_SRC := $(LIB_SRC) src/tcp_server_main.cpp
-TEST_CLIENT_SRC := src/tcp_client_main.cpp src/tcp_client.cpp
+LIB_SRC := boost-tcp/bespoke_connection.cpp boost_tcp_client/tcp_client.cpp boost-tcp/tcp_connection.cpp boost-tcp/tcp_server.cpp
+TEST_SERVER_SRC := $(LIB_SRC) boost-tcp/tcp_server_main.cpp
+TEST_CLIENT_SRC := boost_tcp_client/tcp_client_main.cpp boost_tcp_client/tcp_client.cpp
 
 all:
 	make tcp_server_lib
