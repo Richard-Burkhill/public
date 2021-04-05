@@ -12,4 +12,4 @@ sudo make -j4 zImage dtbs #sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
 sudo make modules_install
 sudo cp arch/arm/boot/dts/*.dtb /boot/
 sudo cp arch/arm/boot/dts/overlays/README /boot/overlays
-sudo co arch/arm/boot/zImage /boot/$KERNEL.img
+sudo cp arch/arm/boot/zImage /boot/$KERNEL.img
