@@ -1,0 +1,12 @@
+set pagination off
+set logging file gdb.output
+set logging on
+
+b main
+run
+step
+step
+next
+step 2
+next 2
+
