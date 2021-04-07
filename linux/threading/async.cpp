@@ -1,6 +1,6 @@
-#include <future>
+#include <future> //async algorithm
 #include <vector>
-#include <algorithm>
+#include <algorithm> //generate algorithm
 #include <iostream>
 
 #include <sys/socket.h>       /*  socket definitions        */
@@ -14,6 +14,30 @@
 
 using namespace std;
 
+/*** @file
+ * @author Richard Burkhill <reburkhill@gmail.com>
+ * @version 1.0
+ * @section © COPYRIGHT
+ * 
+ * The copyright in this source code and material (including without limitation, the text, the computer code), is owned by Specialist Software Soultions Ltd.
+ * 
+ * Developed by 
+ * 
+ * @section DESCRIPTION
+ * 
+ * Examples of the async and generate STL algorithms, with doxygen comments
+ * /
+ 
+/**
+ * @briefA Asyncable class
+ * @authorFuture Richard Burkhill
+ * 
+ * This class provides copy constructor and assignment operator for use with STL collections, specifically vector.
+ * The class also provides the functor operator, so the class may be used within an async algorithm.
+ * 
+ * Provide the remote IP address and remote ports, attempt to create a virtual connection via TCP, then write out some text by Christopher Marlow.
+ * 
+ */
 struct Asyncable {
     private:
         const int MAX_LINE = 1000;
@@ -70,19 +94,59 @@ struct Asyncable {
         }
 };
 
+/** @name asyncWithNestedLambdas
+ * @brief  Documentation for 2 async functions
+ */
+///@{
 void asyncWithNestedLambdas (){
-    auto a1 = async(launch::deferred, [] (){ vector<int> v(50); generate(v.begin(), v.end(), 
-    [] () -> int { static int similarToGlobal = 0; static int count = 1; cout << "Deferred counting " << count++ << endl; return similarToGlobal += 100;});});
+    //Create 50 integers in a vector, 
+    //the integers are generated using the std algorithm and a lambda,
+    //which starts ast one and increments them by 100
+    auto a1 = async(launch::deferred, [] ()
+    { vector<int> v(50);
+      generate(v.begin(), v.end(), [] () -> int 
+      { static int similarToGlobal = 0;
+        static int count = 1;
+        cout << "Deferred counting " << count++ << endl;
+        return similarToGlobal += 100;
+       });
+    });
 
-    async(launch::async, [] (){ vector<int> v(100); generate(v.begin(), v.end(), 
-    [] () -> int { static int similarToGlobal = 0; static int count = 1; cout << "Generate count " << count++ << endl; return similarToGlobal += 2;});});
-    a1.wait();
+    //Create 100 integers in a vector, 
+    //the integers are generated using the std algorithm and a lambda,
+    //which starts ast one and increments them by 2
+    async(launch::async, [] ()
+    { vector<int> v(100);
+      generate(v.begin(), v.end(), [] () -> int
+      { static int similarToGlobal = 0;
+        static int count = 1;
+        cout << "Generate count " << count++ << endl;
+        return similarToGlobal += 2;
+      });
+    });
+    a1.wait();//This signals async thread a1 to start
 }
+///@}
 
+
+/** @name main
+ * @brief  Documentation for 2 async functions
+ * @param  argc The argument count as an integer
+ * @param  argv The argument values as an array of char pointers
+ * @retval Success, 0 will always be returned
+ */
 int main (int argc, char** argv){
     asyncWithNestedLambdas();
 
     char localHost[10]="127.0.0.1";
     int remotePort=0;
-    async(launch::async, [&localHost, &remotePort] () { vector<int> v(65535); generate(v.begin(), v.end(), [&localHost, &remotePort]() -> int { int socket_addr; async(launch::async, Asyncable(), &localHost[0], remotePort++, &socket_addr); return socket_addr; });});
+    async(launch::async, [&localHost, &remotePort] () 
+    { vector<int> v(65535); generate(v.begin(), v.end(), 
+        [&localHost, &remotePort]() -> int 
+        { int socket_addr;
+          async(launch::async, Asyncable(), &localHost[0], remotePort++, &socket_addr);
+          return socket_addr; 
+        });
+    });
+    return EXIT_SUCCESS;
 }
