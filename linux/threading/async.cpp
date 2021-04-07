@@ -17,11 +17,9 @@ using namespace std;
 /*** @file
  * @author Richard Burkhill <reburkhill@gmail.com>
  * @version 1.0
- * @section © COPYRIGHT
+ * @section © COPYRIGHT 2021
  * 
  * The copyright in this source code and material (including without limitation, the text, the computer code), is owned by Specialist Software Soultions Ltd.
- * 
- * Developed by 
  * 
  * @section DESCRIPTION
  * 
@@ -32,9 +30,8 @@ using namespace std;
  * @briefA Asyncable class
  * @authorFuture Richard Burkhill
  * 
- * This class provides copy constructor and assignment operator for use with STL collections, specifically vector.
- * The class also provides the functor operator, so the class may be used within an async algorithm.
- * 
+ * This class provides copy constructor and assignment operator for use with STL collections, specifically vector. 
+ * The class also provides the functor operator, so the class may be used within an async algorithm. 
  * Provide the remote IP address and remote ports, attempt to create a virtual connection via TCP, then write out some text by Christopher Marlow.
  * 
  */
