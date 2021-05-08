@@ -1,0 +1,22 @@
+sudo apt install mysql-server
+sudo mysql_secure_installation
+sudo mysql
+mysql -u root -p
+CREATE USER 'user'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+exit
+mysql -u user -p
+systemctl status mysql.service
+sudo mysqladmin -p -u 'user' version
+CREATE DATABASE MyDatabase;
+USE MyDatabase;
+CREATE TABLE dbo.[User]
+(
+    UserID INT IDENTITY(1,1) NOT NULL,
+    LoginName NVARCHAR(40) NOT NULL,
+    PasswordHash BINARY(64) NOT NULL,
+    FirstName NVARCHAR(40) NULL,
+    LastName NVARCHAR(40) NULL,
+    CONSTRAINT [PK_User_UserID] PRIMARY KEY CLUSTERED (UserID ASC)
+)

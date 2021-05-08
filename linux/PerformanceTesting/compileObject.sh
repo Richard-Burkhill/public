@@ -10,8 +10,8 @@ obj=$(echo "${obj##*( )}")
 echo "List of objects is $obj"
 
 #might need
-#g++ -MMD -MP -std=gnu++17 -g -lm -ldl -lpthread -c $obj -o $exe_name
+g++ -MMD -MP -std=gnu++17 -g -lm -ldl -lpthread -c $obj -o $exe_name
 #for more than one object
-g++ -MMD -MP -std=gnu++17 -g -lm -ldl -lpthread $obj -o $exe_name
+#g++ -MMD -MP -std=gnu++17 -g -lm -ldl -lpthread $obj -o $exe_name
 
 chmod +x $exe_name

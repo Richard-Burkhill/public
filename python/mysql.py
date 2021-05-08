@@ -1,8 +1,8 @@
 import MySQLdb
 
 try:
-	connection = MySQLdb.connect (host = "localhost", user = "tester",
-                                 passwd = "GreenFellowRoad3550#!", db = "MyDatabase")
+	connection = MySQLdb.connect (host = "localhost", user = "rich",
+                                 passwd = "password", db = "MyDatabase")
 except MySQLdb.Error as e:
 	print("Error %d: %s" % (e.args[0], e.args[1]))
 	sys.exit(1)
