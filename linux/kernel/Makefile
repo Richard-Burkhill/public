@@ -1,4 +1,4 @@
-obj-m := Hello_Kernel_Module.o
+obj-m := webCamTransmission.o
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
@@ -7,7 +7,7 @@ clean:
 
 test:
 	sudo dmesg -C
-	sudo insmod Hello_Kernel_Module.ko
-	sudo rmmod Hello_Kernel_Module.ko
+	sudo insmod webCamTransmission.ko
+	sudo rmmod webCamTransmission.ko
 	dmesg
 
